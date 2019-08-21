@@ -11,4 +11,5 @@ In the interest of simplicity, the following things were removed from the origin
 
 ## Build
 The source code is organized as a Visual Studio 2019 built for x86-64 architecture. It uses the v142 toolset.
-The shaders are compiled at build time as part of the solution. 
+
+Shaders are compiled at build time as part of the solution. 
