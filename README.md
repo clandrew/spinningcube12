@@ -8,3 +8,6 @@ In the interest of simplicity, the following things were removed from the origin
 * Saving and restoring of persistant state
 
 ![Example image](https://raw.githubusercontent.com/clandrew/spinningcube12/master/Images/Image.png "Example image.")
+
+## Build
+The source code is organized as a Visual Studio 2019 built for x86-64 architecture. It uses the v142 toolset.
