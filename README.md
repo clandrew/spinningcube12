@@ -6,3 +6,5 @@ In the interest of simplicity, the following things were removed from the origin
 * Monitor-rotation-change handling
 * DPI-change handling
 * Saving and restoring of persistant state
+
+![Example image](https://raw.githubusercontent.com/clandrew/spinningcube12/master/Images/Image.png "Example image.")
