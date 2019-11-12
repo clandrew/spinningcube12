@@ -1,2 +1,8 @@
 .vs/*
 x64/*
+
+/DXCBinaries/*
+*.zip
+*.pdb
+*.dll
+*.exe

@@ -75,29 +75,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		};
 
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC state = {};
-		state.InputLayout = { inputLayout, _countof(inputLayout) };
-		state.pRootSignature = m_rootSignature.Get();
-        state.VS = CD3DX12_SHADER_BYTECODE(&m_vertexShader[0], m_vertexShader.size());
-        state.PS = CD3DX12_SHADER_BYTECODE(&m_pixelShader[0], m_pixelShader.size());
-		state.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-		state.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		state.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-		state.SampleMask = UINT_MAX;
-		state.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		state.NumRenderTargets = 1;
-		state.RTVFormats[0] = m_deviceResources->GetBackBufferFormat();
-		state.DSVFormat = m_deviceResources->GetDepthBufferFormat();
-		state.SampleDesc.Count = 1;
-
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateGraphicsPipelineState(&state, IID_PPV_ARGS(&m_pipelineState)));
-
 		D3D12_FEATURE_DATA_D3D12_OPTIONS7 d3d12Options7{};
 		HRESULT hrCheckFeatureSupport = m_deviceResources->GetD3DDevice()->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &d3d12Options7, sizeof(d3d12Options7));
 		bool deviceSupportsMeshShaders = SUCCEEDED(hrCheckFeatureSupport) && d3d12Options7.MeshShaderTier != D3D12_MESH_SHADER_TIER_NOT_SUPPORTED;
 
-
-		ComPtr<ID3D12PipelineState> m_pipelineState2;
 		D3D12_PIPELINE_STATE_STREAM_DESC StreamDesc;
 		struct PSO_STREAM
 		{
@@ -384,7 +365,7 @@ bool Sample3DSceneRenderer::Render()
 	DX::ThrowIfFailed(m_deviceResources->GetCommandAllocator()->Reset());
 
 	// The command list can be reset anytime after ExecuteCommandList() is called.
-	DX::ThrowIfFailed(m_commandList->Reset(m_deviceResources->GetCommandAllocator(), m_pipelineState.Get()));
+	DX::ThrowIfFailed(m_commandList->Reset(m_deviceResources->GetCommandAllocator(), m_pipelineState2.Get()));
 
 	{
 		// Set the graphics root signature and descriptor heaps to be used by this frame.
@@ -416,10 +397,8 @@ bool Sample3DSceneRenderer::Render()
 
 		m_commandList->OMSetRenderTargets(1, &renderTargetView, false, &depthStencilView);
 
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
-		m_commandList->IASetIndexBuffer(&m_indexBufferView);
-		m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
+		m_commandList->DispatchMesh(1, 1, 1);
+
 
 		// Indicate that the render target will now be used to present when the command list is done executing.
 		CD3DX12_RESOURCE_BARRIER presentResourceBarrier =

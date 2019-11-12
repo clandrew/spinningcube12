@@ -28,9 +28,10 @@ namespace SpinningCube
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;
 
 		// Direct3D resources for cube geometry.
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>	m_commandList;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList6>	m_commandList;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature>			m_rootSignature;
 		Microsoft::WRL::ComPtr<ID3D12PipelineState>			m_pipelineState;
+		Microsoft::WRL::ComPtr<ID3D12PipelineState>			m_pipelineState2;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>		m_cbvHeap;
 		Microsoft::WRL::ComPtr<ID3D12Resource>				m_vertexBuffer;
 		Microsoft::WRL::ComPtr<ID3D12Resource>				m_indexBuffer;
