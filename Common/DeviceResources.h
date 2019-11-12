@@ -41,7 +41,7 @@ namespace DX
 		bool						IsDeviceRemoved() const				{ return m_deviceRemoved; }
 
 		// D3D Accessors.
-		ID3D12Device*				GetD3DDevice() const				{ return m_d3dDevice.Get(); }
+		ID3D12Device2*				GetD3DDevice() const				{ return m_d3dDevice.Get(); }
 		IDXGISwapChain3*			GetSwapChain() const				{ return m_swapChain.Get(); }
 		ID3D12Resource*				GetRenderTarget() const				{ return m_renderTargets[m_currentFrame].Get(); }
 		ID3D12Resource*				GetDepthStencil() const				{ return m_depthStencil.Get(); }
@@ -73,7 +73,7 @@ namespace DX
 		UINT											m_currentFrame;
 
 		// Direct3D objects.
-		Microsoft::WRL::ComPtr<ID3D12Device>			m_d3dDevice;
+		Microsoft::WRL::ComPtr<ID3D12Device2>			m_d3dDevice;
 		Microsoft::WRL::ComPtr<IDXGIFactory4>			m_dxgiFactory;
 		Microsoft::WRL::ComPtr<IDXGISwapChain3>			m_swapChain;
 		Microsoft::WRL::ComPtr<ID3D12Resource>			m_renderTargets[c_frameCount];

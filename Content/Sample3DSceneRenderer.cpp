@@ -5,6 +5,8 @@
 #include <ppltasks.h>
 #include <synchapi.h>
 
+#include "..\MSMain.h"
+
 using namespace SpinningCube;
 
 using namespace DirectX;
@@ -89,6 +91,26 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		state.SampleDesc.Count = 1;
 
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateGraphicsPipelineState(&state, IID_PPV_ARGS(&m_pipelineState)));
+
+		D3D12_FEATURE_DATA_D3D12_OPTIONS7 d3d12Options7{};
+		HRESULT hrCheckFeatureSupport = m_deviceResources->GetD3DDevice()->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &d3d12Options7, sizeof(d3d12Options7));
+		bool deviceSupportsMeshShaders = SUCCEEDED(hrCheckFeatureSupport) && d3d12Options7.MeshShaderTier != D3D12_MESH_SHADER_TIER_NOT_SUPPORTED;
+
+
+		ComPtr<ID3D12PipelineState> m_pipelineState2;
+		D3D12_PIPELINE_STATE_STREAM_DESC StreamDesc;
+		struct PSO_STREAM
+		{
+			CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
+			CD3DX12_PIPELINE_STATE_STREAM_AS AS;
+			CD3DX12_PIPELINE_STATE_STREAM_MS MS;
+		} Stream;
+
+		Stream.pRootSignature = m_rootSignature.Get();
+		Stream.MS = CD3DX12_SHADER_BYTECODE(g_MSMain, sizeof(g_MSMain));
+		StreamDesc.pPipelineStateSubobjectStream = &Stream;
+		StreamDesc.SizeInBytes = sizeof(Stream);
+		m_deviceResources->GetD3DDevice()->CreatePipelineState(&StreamDesc, IID_PPV_ARGS(&m_pipelineState2));
 
 		// Shader data can be deleted once the pipeline state is created.
 		m_vertexShader.clear();

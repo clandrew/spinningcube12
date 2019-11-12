@@ -57,6 +57,9 @@
     <ClInclude Include="Content\ShaderStructures.h">
       <Filter>Content</Filter>
     </ClInclude>
+    <ClInclude Include="SDK.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SpinningCube.cpp">
@@ -93,6 +96,9 @@
       <Filter>Content</Filter>
     </FxCompile>
     <FxCompile Include="Content\SampleVertexShader.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+    <FxCompile Include="MeshShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
   </ItemGroup>

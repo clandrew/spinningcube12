@@ -15,6 +15,8 @@ SpinningCubeMain::SpinningCubeMain()
 	m_timer.SetFixedTimeStep(true);
 	m_timer.SetTargetElapsedSeconds(1.0 / 60);
 	*/
+
+	HRESULT hr = D3D12EnableExperimentalFeatures(1, &D3D12ExperimentalShaderModels, NULL, NULL);
 }
 
 // Creates and initializes the renderers.

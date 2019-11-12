@@ -9,10 +9,9 @@
 
 // add headers that you want to pre-compile here
 #include "framework.h"
-
+#include <initguid.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
-#include <initguid.h>
 #include <dxgidebug.h>
 #include <DirectXMath.h>
 #include <memory>
@@ -24,5 +23,6 @@
 #include <comdef.h>
 
 #include "Common/d3dx12.h"
+#include "SDK.h"
 
 #endif //PCH_H
