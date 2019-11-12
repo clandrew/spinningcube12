@@ -98,8 +98,8 @@
     <FxCompile Include="Content\SampleVertexShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
-    <FxCompile Include="MeshShader.hlsl">
-      <Filter>Content</Filter>
-    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MeshShader.hlsl" />
   </ItemGroup>
 </Project>

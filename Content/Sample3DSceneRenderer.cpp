@@ -43,10 +43,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		CD3DX12_ROOT_PARAMETER parameter;
 
 		range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-		parameter.InitAsDescriptorTable(1, &range, D3D12_SHADER_VISIBILITY_VERTEX);
+		parameter.InitAsDescriptorTable(1, &range, D3D12_SHADER_VISIBILITY_ALL);
 
 		D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | // Only the input assembler stage needs access to the constant buffer.
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
@@ -63,7 +62,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	}
 
 	// Load shaders
-	m_vertexShader = DX::ReadData(L"SampleVertexShader.cso");
 	m_pixelShader = DX::ReadData(L"SamplePixelShader.cso");
 
 	// Create the pipeline state once the shaders are loaded.
@@ -83,18 +81,41 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		struct PSO_STREAM
 		{
 			CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-			CD3DX12_PIPELINE_STATE_STREAM_AS AS;
 			CD3DX12_PIPELINE_STATE_STREAM_MS MS;
+			CD3DX12_PIPELINE_STATE_STREAM_PS PS;
+			CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTFormat;
+			CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC SampleDesc;
+			CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_MASK SampleMask;
+			CD3DX12_PIPELINE_STATE_STREAM_BLEND_DESC BlendState;
+			CD3DX12_PIPELINE_STATE_STREAM_RASTERIZER RasterizerState;
 		} Stream;
 
 		Stream.pRootSignature = m_rootSignature.Get();
 		Stream.MS = CD3DX12_SHADER_BYTECODE(g_MSMain, sizeof(g_MSMain));
+		Stream.PS = CD3DX12_SHADER_BYTECODE(&m_pixelShader[0], m_pixelShader.size());
+
+		DXGI_SAMPLE_DESC SampleDesc = {};
+		SampleDesc.Count = 1;
+		SampleDesc.Quality = 0;
+		Stream.SampleDesc = SampleDesc;
+		Stream.SampleMask = UINT_MAX;
+		Stream.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		Stream.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+
+		D3D12_RT_FORMAT_ARRAY RTFormatArray{};
+		RTFormatArray.RTFormats[0] = DXGI_FORMAT_B8G8R8A8_UNORM;
+		for (UINT i = 1; i < 8; i++)
+		{
+			RTFormatArray.RTFormats[i] = DXGI_FORMAT_UNKNOWN;
+		}
+		RTFormatArray.NumRenderTargets = 1;
+		Stream.RTFormat = RTFormatArray;
+
 		StreamDesc.pPipelineStateSubobjectStream = &Stream;
 		StreamDesc.SizeInBytes = sizeof(Stream);
 		m_deviceResources->GetD3DDevice()->CreatePipelineState(&StreamDesc, IID_PPV_ARGS(&m_pipelineState2));
 
 		// Shader data can be deleted once the pipeline state is created.
-		m_vertexShader.clear();
 		m_pixelShader.clear();
 	};
 
@@ -389,13 +410,11 @@ bool Sample3DSceneRenderer::Render()
 
 		// Record drawing commands.
 		D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView = m_deviceResources->GetRenderTargetView();
-		D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = m_deviceResources->GetDepthStencilView();
 
 		float cornflowerBlue[] = {0.3f, 0.58f, 0.93f, 1.0f};
 		m_commandList->ClearRenderTargetView(renderTargetView, cornflowerBlue, 0, nullptr);
-		m_commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-		m_commandList->OMSetRenderTargets(1, &renderTargetView, false, &depthStencilView);
+		m_commandList->OMSetRenderTargets(1, &renderTargetView, false, nullptr);
 
 		m_commandList->DispatchMesh(1, 1, 1);
 
