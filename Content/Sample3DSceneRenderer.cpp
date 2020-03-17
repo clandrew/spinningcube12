@@ -2,8 +2,6 @@
 #include "Sample3DSceneRenderer.h"
 
 #include "..\Common\DirectXHelper.h"
-#include <ppltasks.h>
-#include <synchapi.h>
 
 using namespace SpinningCube;
 
@@ -21,6 +19,15 @@ Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceRes
 {
 	ZeroMemory(&m_constantBufferData, sizeof(m_constantBufferData));
 
+	DX::ThrowIfFailed(CoInitialize(nullptr));
+
+	DX::ThrowIfFailed(CoCreateInstance(
+		CLSID_WICImagingFactory,
+		NULL,
+		CLSCTX_INPROC_SERVER,
+		IID_IWICImagingFactory,
+		(LPVOID*)&m_wicImagingFactory));
+
 	CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
 }
@@ -34,7 +41,7 @@ Sample3DSceneRenderer::~Sample3DSceneRenderer()
 void Sample3DSceneRenderer::CreateDeviceDependentResources()
 {
 	auto d3dDevice = m_deviceResources->GetD3DDevice();
-
+	
 	// Create a root signature with a single constant buffer slot.
 	{
 		CD3DX12_DESCRIPTOR_RANGE range;
@@ -223,11 +230,11 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Create a descriptor heap for the constant buffers.
 		{
 			D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-			heapDesc.NumDescriptors = DX::c_frameCount;
+			heapDesc.NumDescriptors = DX::c_frameCount + 1;
 			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 			// This flag indicates that this descriptor heap can be bound to the pipeline and that descriptors contained in it can be referenced by a root table.
 			heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-			DX::ThrowIfFailed(d3dDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbvHeap)));
+			DX::ThrowIfFailed(d3dDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbv_srv_Heap)));
 
             NAME_D3D12_OBJECT(m_cbvHeap);
 		}
@@ -245,7 +252,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 		// Create constant buffer views to access the upload buffer.
 		D3D12_GPU_VIRTUAL_ADDRESS cbvGpuAddress = m_constantBuffer->GetGPUVirtualAddress();
-		CD3DX12_CPU_DESCRIPTOR_HANDLE cbvCpuHandle(m_cbvHeap->GetCPUDescriptorHandleForHeapStart());
+		CD3DX12_CPU_DESCRIPTOR_HANDLE cbvCpuHandle(m_cbv_srv_Heap->GetCPUDescriptorHandleForHeapStart());
 		m_cbvDescriptorSize = d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		for (int n = 0; n < DX::c_frameCount; n++)
@@ -282,6 +289,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Wait for the command list to finish executing; the vertex/index buffers need to be uploaded to the GPU before the upload resources go out of scope.
 		m_deviceResources->WaitForGpu();
 	};
+
+	LoadTextureFromPngFile(L"1.png");
 
 	m_loadingComplete = true;
 }
@@ -367,11 +376,11 @@ bool Sample3DSceneRenderer::Render()
 	{
 		// Set the graphics root signature and descriptor heaps to be used by this frame.
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-		ID3D12DescriptorHeap* ppHeaps[] = { m_cbvHeap.Get() };
+		ID3D12DescriptorHeap* ppHeaps[] = { m_cbv_srv_Heap.Get() };
 		m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
 		// Bind the current frame's constant buffer to the pipeline.
-		CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(m_cbvHeap->GetGPUDescriptorHandleForHeapStart(), m_deviceResources->GetCurrentFrameIndex(), m_cbvDescriptorSize);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(m_cbv_srv_Heap->GetGPUDescriptorHandleForHeapStart(), m_deviceResources->GetCurrentFrameIndex(), m_cbvDescriptorSize);
 		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle);
 
 		// Set the viewport and scissor rectangle.
@@ -412,4 +421,91 @@ bool Sample3DSceneRenderer::Render()
 	m_deviceResources->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	return true;
+}
+
+Sample3DSceneRenderer::LoadedImageData Sample3DSceneRenderer::LoadImageDataFromPngFile(std::wstring fileName)
+{
+	LoadedImageData result{};
+
+	ComPtr<IWICBitmapDecoder> decoder;
+	DX::ThrowIfFailed(m_wicImagingFactory->CreateDecoderFromFilename(
+		fileName.c_str(),
+		NULL,
+		GENERIC_READ,
+		WICDecodeMetadataCacheOnLoad, &decoder));
+
+	ComPtr<IWICBitmapFrameDecode> spSource;
+	DX::ThrowIfFailed(decoder->GetFrame(0, &spSource));
+
+	ComPtr<IWICFormatConverter> spConverter;
+	DX::ThrowIfFailed(m_wicImagingFactory->CreateFormatConverter(&spConverter));
+
+	DX::ThrowIfFailed(spConverter->Initialize(
+		spSource.Get(),
+		GUID_WICPixelFormat32bppPBGRA,
+		WICBitmapDitherTypeNone,
+		NULL,
+		0.f,
+		WICBitmapPaletteTypeMedianCut));
+
+	DX::ThrowIfFailed(spConverter->GetSize(&result.ImageWidth, &result.ImageHeight));
+
+	result.Buffer.resize(result.ImageWidth * result.ImageHeight);
+	DX::ThrowIfFailed(spConverter->CopyPixels(
+		NULL,
+		result.ImageWidth * sizeof(UINT),
+		result.Buffer.size() * sizeof(UINT),
+		reinterpret_cast<BYTE*>(result.Buffer.data())));
+
+	return result;
+}
+
+void Sample3DSceneRenderer::LoadTextureFromPngFile(std::wstring fileName)
+{
+	LoadedImageData loadedImageData = LoadImageDataFromPngFile(fileName);
+
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Width = loadedImageData.ImageWidth;
+	resourceDesc.Height = loadedImageData.ImageHeight;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.SampleDesc.Quality = 0;
+	
+	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&m_texture)));
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(m_cbv_srv_Heap->GetCPUDescriptorHandleForHeapStart());
+	cbvCpuHandle.Offset(DX::c_frameCount, m_cbvDescriptorSize);
+	
+	// Describe and create a SRV for the texture.
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = resourceDesc.Format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	m_deviceResources->GetD3DDevice()->CreateShaderResourceView(m_texture.Get(), &srvDesc, m_srvHeap->GetCPUDescriptorHandleForHeapStart());
+
+	const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_texture.Get(), 0, 1);
+	
+	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&m_upload)));
+
+	D3D12_SUBRESOURCE_DATA initialData{};
+	initialData.pData = loadedImageData.Buffer.data();
+	initialData.RowPitch = loadedImageData.ImageWidth * 4;
+	initialData.SlicePitch = loadedImageData.ImageWidth * loadedImageData.ImageHeight * 4;
+	UpdateSubresources(m_commandList.Get(), m_texture.Get(), m_upload.Get(), 0, 0, 1, &initialData);
 }
