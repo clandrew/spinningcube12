@@ -29,7 +29,7 @@ namespace SpinningCube
 			std::vector<UINT> Buffer;
 		};
 		LoadedImageData LoadImageDataFromPngFile(std::wstring fileName);
-		void LoadTextureFromPngFile(std::wstring fileName, std::wstring fileName2, std::wstring fileName3, std::wstring fileName4, std::wstring fileName5);
+		void LoadTextureFromPngFile(std::vector<std::wstring> const& mipImageFileNames);
 
 	private:
 		// Constant buffers must be 256-byte aligned.
