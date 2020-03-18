@@ -29,7 +29,7 @@ namespace SpinningCube
 			std::vector<UINT> Buffer;
 		};
 		LoadedImageData LoadImageDataFromPngFile(std::wstring fileName);
-		void LoadTextureFromPngFile(std::wstring fileName);
+		void LoadTextureFromPngFile(std::wstring fileName, std::wstring fileName2);
 
 	private:
 		// Constant buffers must be 256-byte aligned.
@@ -55,7 +55,8 @@ namespace SpinningCube
 		D3D12_VERTEX_BUFFER_VIEW			m_vertexBufferView;
 		D3D12_INDEX_BUFFER_VIEW				m_indexBufferView;
 		ComPtr<ID3D12Resource>				m_texture;
-	    ComPtr<ID3D12Resource>              m_upload;
+	    std::vector<ComPtr<ID3D12Resource>> m_uploads;
+		UINT								m_indexCount;
 
 		ComPtr<IWICImagingFactory>          m_wicImagingFactory;
 
