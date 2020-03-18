@@ -315,7 +315,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// We don't unmap this until the app closes. Keeping things mapped for the lifetime of the resource is okay.
 
 		// Load image resource
-		LoadTextureFromPngFile(L"1.png", L"2.png");
+		LoadTextureFromPngFile(L"1.png", L"2.png", L"3.png", L"4.png", L"5.png");
 
 		// Close the command list and execute it to begin the vertex/index buffer copy into the GPU's default heap.
 		DX::ThrowIfFailed(m_commandList->Close());
@@ -503,16 +503,19 @@ Sample3DSceneRenderer::LoadedImageData Sample3DSceneRenderer::LoadImageDataFromP
 	return result;
 }
 
-void Sample3DSceneRenderer::LoadTextureFromPngFile(std::wstring fileName, std::wstring fileName2)
+void Sample3DSceneRenderer::LoadTextureFromPngFile(std::wstring fileName, std::wstring fileName2, std::wstring fileName3, std::wstring fileName4, std::wstring fileName5)
 {
 	LoadedImageData loadedImageData = LoadImageDataFromPngFile(fileName);
 	LoadedImageData loadedImageData2 = LoadImageDataFromPngFile(fileName2);
+	LoadedImageData loadedImageData3 = LoadImageDataFromPngFile(fileName3);
+	LoadedImageData loadedImageData4 = LoadImageDataFromPngFile(fileName4);
+	LoadedImageData loadedImageData5 = LoadImageDataFromPngFile(fileName5);
 
 	D3D12_RESOURCE_DESC resourceDesc{};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resourceDesc.Width = loadedImageData.ImageWidth;
 	resourceDesc.Height = loadedImageData.ImageHeight;
-	resourceDesc.MipLevels = 2;
+	resourceDesc.MipLevels = 5;
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	resourceDesc.SampleDesc.Count = 1;
@@ -534,7 +537,7 @@ void Sample3DSceneRenderer::LoadTextureFromPngFile(std::wstring fileName, std::w
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Format = resourceDesc.Format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = 2;
+	srvDesc.Texture2D.MipLevels = resourceDesc.MipLevels;
 	m_deviceResources->GetD3DDevice()->CreateShaderResourceView(m_texture.Get(), &srvDesc, cpuHandle);
 
 	{
@@ -574,6 +577,66 @@ void Sample3DSceneRenderer::LoadTextureFromPngFile(std::wstring fileName, std::w
 		initialData.RowPitch = loadedImageData2.ImageWidth * 4;
 		initialData.SlicePitch = loadedImageData2.ImageWidth * loadedImageData2.ImageHeight * 4;
 		UpdateSubresources(m_commandList.Get(), m_texture.Get(), upload.Get(), 0, 1, 1, &initialData);
+
+		m_uploads.push_back(upload);
+	}
+	{
+		const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_texture.Get(), 2, 1);
+
+		ComPtr<ID3D12Resource> upload;
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateCommittedResource(
+			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+			D3D12_HEAP_FLAG_NONE,
+			&CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&upload)));
+
+		D3D12_SUBRESOURCE_DATA initialData{};
+		initialData.pData = loadedImageData3.Buffer.data();
+		initialData.RowPitch = loadedImageData3.ImageWidth * 4;
+		initialData.SlicePitch = loadedImageData3.ImageWidth * loadedImageData3.ImageHeight * 4;
+		UpdateSubresources(m_commandList.Get(), m_texture.Get(), upload.Get(), 0, 2, 1, &initialData);
+
+		m_uploads.push_back(upload);
+	}
+	{
+		const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_texture.Get(), 3, 1);
+
+		ComPtr<ID3D12Resource> upload;
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateCommittedResource(
+			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+			D3D12_HEAP_FLAG_NONE,
+			&CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&upload)));
+
+		D3D12_SUBRESOURCE_DATA initialData{};
+		initialData.pData = loadedImageData4.Buffer.data();
+		initialData.RowPitch = loadedImageData4.ImageWidth * 4;
+		initialData.SlicePitch = loadedImageData4.ImageWidth * loadedImageData4.ImageHeight * 4;
+		UpdateSubresources(m_commandList.Get(), m_texture.Get(), upload.Get(), 0, 3, 1, &initialData);
+
+		m_uploads.push_back(upload);
+	}
+	{
+		const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_texture.Get(), 4, 1);
+
+		ComPtr<ID3D12Resource> upload;
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateCommittedResource(
+			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+			D3D12_HEAP_FLAG_NONE,
+			&CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&upload)));
+
+		D3D12_SUBRESOURCE_DATA initialData{};
+		initialData.pData = loadedImageData5.Buffer.data();
+		initialData.RowPitch = loadedImageData5.ImageWidth * 4;
+		initialData.SlicePitch = loadedImageData5.ImageWidth * loadedImageData5.ImageHeight * 4;
+		UpdateSubresources(m_commandList.Get(), m_texture.Get(), upload.Get(), 0, 4, 1, &initialData);
 
 		m_uploads.push_back(upload);
 	}

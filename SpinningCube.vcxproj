@@ -194,6 +194,8 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
     </Image>
+    <Image Include="2.png" />
+    <Image Include="3.png" />
     <Image Include="small.ico" />
     <Image Include="SpinningCube.ico" />
   </ItemGroup>

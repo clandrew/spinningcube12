@@ -90,6 +90,12 @@
     <Image Include="1.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
