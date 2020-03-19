@@ -86,10 +86,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		state.SampleDesc.Count = 1;
 
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateGraphicsPipelineState(&state, IID_PPV_ARGS(&m_pipelineState)));
-
-		// Shader data can be deleted once the pipeline state is created.
-		m_vertexShader.clear();
-		m_pixelShader.clear();
 	};
 
 	// Create and upload cube geometry resources to the GPU.
