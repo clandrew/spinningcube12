@@ -2,8 +2,9 @@
 #include "Sample3DSceneRenderer.h"
 
 #include "..\Common\DirectXHelper.h"
-#include <ppltasks.h>
-#include <synchapi.h>
+
+#include "SampleVertexShader.h"
+#include "SamplePixelShader.h"
 
 using namespace SpinningCube;
 
@@ -60,10 +61,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
         NAME_D3D12_OBJECT(m_rootSignature);
 	}
 
-	// Load shaders
-	m_vertexShader = DX::ReadData(L"SampleVertexShader.cso");
-	m_pixelShader = DX::ReadData(L"SamplePixelShader.cso");
-
 	// Create the pipeline state once the shaders are loaded.
 	{
 
@@ -76,8 +73,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC state = {};
 		state.InputLayout = { inputLayout, _countof(inputLayout) };
 		state.pRootSignature = m_rootSignature.Get();
-        state.VS = CD3DX12_SHADER_BYTECODE(&m_vertexShader[0], m_vertexShader.size());
-        state.PS = CD3DX12_SHADER_BYTECODE(&m_pixelShader[0], m_pixelShader.size());
+        state.VS = CD3DX12_SHADER_BYTECODE((void*)(g_SampleVertexShader), _countof(g_SampleVertexShader));
+        state.PS = CD3DX12_SHADER_BYTECODE((void*)(g_SamplePixelShader), _countof(g_SamplePixelShader));
 		state.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		state.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 		state.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
@@ -89,10 +86,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		state.SampleDesc.Count = 1;
 
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateGraphicsPipelineState(&state, IID_PPV_ARGS(&m_pipelineState)));
-
-		// Shader data can be deleted once the pipeline state is created.
-		m_vertexShader.clear();
-		m_pixelShader.clear();
 	};
 
 	// Create and upload cube geometry resources to the GPU.
