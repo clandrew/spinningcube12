@@ -12,4 +12,4 @@ In the interest of simplicity, the following things were removed from the origin
 ## Build
 The source code is organized as a Visual Studio 2019 built for x86-64 architecture. It uses the v142 toolset.
 
-Shaders are compiled at build time as part of the solution against shader model 4 level 9_3.
+Shaders are compiled at build time as part of the solution against shader model 6_0. This shader model isn't necessary, I set it so that it's a default which is more useful for me. If you want, you can set it to shader model 4 level 9_3.
