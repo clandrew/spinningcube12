@@ -95,5 +95,8 @@
     <FxCompile Include="Content\SampleVertexShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
+    <FxCompile Include="Content\SampleGeometryShader.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

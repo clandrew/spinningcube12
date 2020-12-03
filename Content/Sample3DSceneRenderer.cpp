@@ -4,6 +4,7 @@
 #include "..\Common\DirectXHelper.h"
 
 #include "SampleVertexShader.h"
+#include "SampleGeometryShader.h"
 #include "SamplePixelShader.h"
 
 using namespace SpinningCube;
@@ -74,6 +75,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		state.InputLayout = { inputLayout, _countof(inputLayout) };
 		state.pRootSignature = m_rootSignature.Get();
         state.VS = CD3DX12_SHADER_BYTECODE((void*)(g_SampleVertexShader), _countof(g_SampleVertexShader));
+		state.GS = CD3DX12_SHADER_BYTECODE((void*)(g_SampleGeometryShader), _countof(g_SampleGeometryShader));
         state.PS = CD3DX12_SHADER_BYTECODE((void*)(g_SamplePixelShader), _countof(g_SamplePixelShader));
 		state.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		state.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -325,7 +327,7 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		if (!m_tracking)
 		{
 			// Rotate the cube a small amount.
-			m_angle += static_cast<float>(timer.GetElapsedSeconds()) * m_radiansPerSecond;
+			//m_angle += static_cast<float>(timer.GetElapsedSeconds()) * m_radiansPerSecond;
 
 			Rotate(m_angle);
 		}
