@@ -5,7 +5,7 @@
 #include "framework.h"
 #include "SpinningCube.h"
 #include "SpinningCubeMain.h"
-#include "Common/DeviceResources.h"
+#include "DeviceResources.h"
 
 using namespace Microsoft::WRL;
 

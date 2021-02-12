@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Sample3DSceneRenderer.h"
 
-#include "..\Common\DirectXHelper.h"
+#include "DirectXHelper.h"
 
 #include "SampleVertexShader.h"
 #include "SamplePixelShader.h"

@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "SpinningCubeMain.h"
-#include "Common\DirectXHelper.h"
+#include "DirectXHelper.h"
 
 using namespace SpinningCube;
 

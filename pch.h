@@ -23,6 +23,6 @@
 #include <wrl/client.h>
 #include <comdef.h>
 
-#include "Common/d3dx12.h"
+#include "d3dx12.h"
 
 #endif //PCH_H
