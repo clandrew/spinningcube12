@@ -16,6 +16,12 @@
     <Filter Include="Common">
       <UniqueIdentifier>{b2cdafcd-fbfb-4ad8-a480-9b976ce66b17}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{1d6d53fa-38a3-4459-acfb-dc5681b74d58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3DX">
+      <UniqueIdentifier>{e6ff278a-9a8e-422f-837d-401d5c968ae1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -48,9 +54,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="d3dx12.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DeviceResources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,12 +72,6 @@
     <ClInclude Include="Sample3DSceneRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SamplePixelShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SampleVertexShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderStructures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -89,6 +86,15 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SamplePixelShader.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="SampleVertexShader.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx12.h">
+      <Filter>D3DX</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
