@@ -354,6 +354,32 @@ bool Sample3DSceneRenderer::Render()
 
 	DX::ThrowIfFailed(m_deviceResources->GetCommandAllocator()->Reset());
 
+	m_pipelineState.Reset();
+	{
+		static const D3D12_INPUT_ELEMENT_DESC inputLayout[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		};
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC state = {};
+		state.InputLayout = { inputLayout, _countof(inputLayout) };
+		state.pRootSignature = m_rootSignature.Get();
+		state.VS = CD3DX12_SHADER_BYTECODE((void*)(g_SampleVertexShader), _countof(g_SampleVertexShader));
+		state.PS = CD3DX12_SHADER_BYTECODE((void*)(g_SamplePixelShader), _countof(g_SamplePixelShader));
+		state.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		state.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		state.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+		state.SampleMask = UINT_MAX;
+		state.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		state.NumRenderTargets = 1;
+		state.RTVFormats[0] = m_deviceResources->GetBackBufferFormat();
+		state.DSVFormat = m_deviceResources->GetDepthBufferFormat();
+		state.SampleDesc.Count = 1;
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateGraphicsPipelineState(&state, IID_PPV_ARGS(&m_pipelineState)));
+	}
+
 	// The command list can be reset anytime after ExecuteCommandList() is called.
 	DX::ThrowIfFailed(m_commandList->Reset(m_deviceResources->GetCommandAllocator(), m_pipelineState.Get()));
 
@@ -399,6 +425,8 @@ bool Sample3DSceneRenderer::Render()
 	}
 
 	DX::ThrowIfFailed(m_commandList->Close());
+
+	m_pipelineState.Reset();
 
 	// Execute the command list.
 	ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
